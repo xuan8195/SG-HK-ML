@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Mood Detector - All Features</title>
+    <link rel="stylesheet" href="design.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Add these lines for ML model -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header with Logo and Navigation -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-paw"></i>
+                <h1>Pet Mood Detector</h1>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn active" data-section="camera">
+                    <i class="fas fa-camera"></i>
+                    Detect Mood
+                </button>
+                <button class="nav-btn" data-section="music">
+                    <i class="fas fa-music"></i>
+                    Music Player
+                </button>
+                <button class="nav-btn" data-section="games">
+                    <i class="fas fa-gamepad"></i>
+                    Games
+                </button>
+                <button class="nav-btn" data-section="all-features">
+                    <i class="fas fa-th-large"></i>
+                    All Features
+                </button>
+            </nav>
+        </header>
+
+        <!-- Camera/Detection Section -->
+        <section id="camera" class="section active">
+            <div class="camera-container">
+                <div class="camera-frame">
+                    <div class="camera-placeholder" id="webcam-container">
+                        <i class="fas fa-video"></i>
+                        <p>Click to start webcam and detect your pet's mood</p>
+                        <small>Live mood detection using your camera</small>
+                    </div>
+                    <!-- Remove file input, add webcam controls -->
+                    <button class="capture-btn" id="start-webcam-btn" onclick="startWebcam()">
+                        <i class="fas fa-video"></i>
+                        Start Webcam
+                    </button>
+                    <button class="capture-btn" id="stop-webcam-btn" onclick="stopWebcam()" style="display: none; background: #e53e3e;">
+                        <i class="fas fa-stop"></i>
+                        Stop Webcam
+                    </button>
+                </div>
+                
+                <div class="mood-result">
+                    <h3>🔍 Live Mood Analysis</h3>
+                    <div class="mood-display">
+                        <div class="mood-emoji">😺</div>
+                        <div class="mood-info">
+                            <h4 class="mood-name">Happy</h4>
+                            <p class="mood-description" id="mood-status-description">Your pet is feeling joyful and playful!</p>
+                            <div class="confidence">Confidence: 94%</div>
+                            <div id="mood-confirmation-actions" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Confirmation buttons will be added here by JavaScript -->
+                            </div>
+                            <div id="prediction-container" style="margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 10px; font-size: 0.9rem;">
+                                <!-- Live predictions will appear here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Music Section -->
+        <section id="music" class="section">
+            <div class="music-container">
+                <h2>🎵 Mood-Based Music Player</h2>
+                
+                <div class="current-mood">
+                    <span class="mood-badge happy">😺 Happy Mood Detected</span>
+                </div>
+
+                <!-- Music Player -->
+                <div class="music-player">
+                    <div class="now-playing">
+                        <div class="album-art">
+                            <i class="fas fa-music"></i>
+                        </div>
+                        <div class="track-info">
+                            <h4 id="current-song">Playful Paws Melody</h4>
+                            <p id="current-artist">Happy Pet Collection</p>
+                        </div>
+                        <div style="margin-left: auto;">
+                            <button class="control-btn" onclick="toggleShuffle()" title="Shuffle">
+                                <i class="fas fa-random"></i>
+                            </button>
+                            <button class="control-btn" onclick="toggleRepeat()" title="Repeat">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="player-controls">
+                        <button class="control-btn" onclick="previousTrack()" title="Previous Track">
+                            <i class="fas fa-backward"></i>
+                        </button>
+                        <button class="control-btn play-btn" onclick="togglePlay()" title="Play/Pause">
+                            <i class="fas fa-play"></i>
+                        </button>
+                        <button class="control-btn" onclick="nextTrack()" title="Next Track">
+                            <i class="fas fa-forward"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="progress-bar" onclick="seekTrack(event)">
+                        <div class="progress" id="progress"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.9rem;">
+                        <span id="current-time">0:00</span>
+                        <span id="total-time">3:24</span>
+                    </div>
+                </div>
+
+                <!-- Mood-based Playlists -->
+                <div class="mood-playlists">
+                    <div class="playlist-card happy" onclick="switchPlaylist('happy')">
+                        <div class="playlist-emoji">😺</div>
+                        <h4>Happy Vibes</h4>
+                        <p>Upbeat and playful tunes for energetic pets</p>
+                        <span class="track-count">12 tracks • 45 min</span>
+                    </div>
+                    
+                    <div class="playlist-card sad" onclick="switchPlaylist('sad')">
+                        <div class="playlist-emoji">😢</div>
+                        <h4>Comfort Zone</h4>
+                        <p>Soft, comforting melodies for relaxation</p>
+                        <span class="track-count">8 tracks • 32 min</span>
+                    </div>
+                    
+                    <div class="playlist-card angry" onclick="switchPlaylist('angry')">
+                        <div class="playlist-emoji">😾</div>
+                        <h4>Energy Release</h4>
+                        <p>Intense tracks to help release tension</p>
+                        <span class="track-count">10 tracks • 38 min</span>
+                    </div>
+                </div>
+
+                <!-- Current Playlist -->
+                <div style="margin-top: 30px;">
+                    <h3 style="margin-bottom: 20px; color: #2d3748;">🎵 Current Playlist: <span id="playlist-name">Happy Vibes</span></h3>
+                    <div id="playlist-tracks" style="background: white; border-radius: 15px; padding: 20px;">
+                        <!-- Tracks will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Games Section -->
+        <section id="games" class="section">
+            <div class="games-container">
+                <h2>🎮 Mood-Based Pet Games</h2>
+                
+                <div class="current-mood">
+                    <span class="mood-badge happy">😺 Happy Mood - Perfect for Active Games!</span>
+                </div>
+
+                <!-- Featured Game -->
+                <div class="recommended-game">
+                    <div class="game-card featured">
+                        <div class="game-icon">🏃‍♂️</div>
+                        <div class="game-info">
+                            <h3 id="featured-game-title">Treat Dash Adventure</h3>
+                            <p id="featured-game-desc">Perfect for your happy pet! Chase treats, collect rewards, and unlock new levels. This energetic game will keep your pet engaged and entertained.</p>
+                            <div class="game-stats">
+                                <span><i class="fas fa-star"></i> 4.8/5</span>
+                                <span><i class="fas fa-clock"></i> 5-15 min</span>
+                                <span><i class="fas fa-users"></i> 1-2 players</span>
+                                <span><i class="fas fa-medal"></i> Easy</span>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="play-btn" onclick="startFeaturedGame()" title="Play Featured Game">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <div style="margin-top: 10px; text-align: center;">
+                                <small style="color: rgba(255,255,255,0.8);">Recommended for current mood</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Games Grid -->
+                <div class="all-games">
+                    <h3>🎯 All Games by Mood Category</h3>
+                    
+                    <div class="game-grid">
+                        <!-- Angry Games -->
+                        <div class="game-card angry">
+                            <div class="game-icon">🔨</div>
+                            <h4>Whack-a-Bath Toy</h4>
+                            <p>Release anger and stress with this satisfying whacking game. Perfect for pets who need to blow off steam.</p>
+                            <div class="mood-tag angry">😾 Angry Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.5</span> • 
+                                <span><i class="fas fa-clock"></i> 3-8 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('whack-toy')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+                        
+                        <!-- Sad Games -->
+                        <div class="game-card sad">
+                            <div class="game-icon">🤗</div>
+                            <h4>Cuddle Catcher</h4>
+                            <p>A gentle, comforting game focused on collecting hugs and warm moments. Designed to lift spirits.</p>
+                            <div class="mood-tag sad">😢 Sad Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.7</span> • 
+                                <span><i class="fas fa-clock"></i> 5-12 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('cuddle-catcher')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+                        
+                        <!-- Happy Games -->
+                        <div class="game-card happy">
+                            <div class="game-icon">🏃‍♂️</div>
+                            <h4>Treat Dash</h4>
+                            <p>High-energy running game where pets chase treats through obstacle courses. Multiple difficulty levels available.</p>
+                            <div class="mood-tag happy">😺 Happy Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.8</span> • 
+                                <span><i class="fas fa-clock"></i> 5-15 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('treat-dash')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+
+                        <!-- Additional Games -->
+                        <div class="game-card happy">
+                            <div class="game-icon">🎾</div>
+                            <h4>Ball Bounce Bonanza</h4>
+                            <p>Interactive ball-catching game with physics-based gameplay. Great for active, playful pets.</p>
+                            <div class="mood-tag happy">😺 Happy Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.6</span> • 
+                                <span><i class="fas fa-clock"></i> 4-10 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('ball-bounce')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+
+                        <div class="game-card sad">
+                            <div class="game-icon">🌙</div>
+                            <h4>Peaceful Garden</h4>
+                            <p>Relaxing exploration game in a beautiful garden setting. Helps calm anxious or sad pets.</p>
+                            <div class="mood-tag sad">😢 Sad Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.4</span> • 
+                                <span><i class="fas fa-clock"></i> 8-20 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('peaceful-garden')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+
+                        <div class="game-card angry">
+                            <div class="game-icon">⚡</div>
+                            <h4>Thunder Strike</h4>
+                            <p>Fast-paced action game for releasing pent-up energy. Multiple power-ups and challenging levels.</p>
+                            <div class="mood-tag angry">😾 Angry Mood</div>
+                            <div style="margin: 10px 0; font-size: 0.9rem; color: #666;">
+                                <span><i class="fas fa-star"></i> 4.3</span> • 
+                                <span><i class="fas fa-clock"></i> 3-7 min</span>
+                            </div>
+                            <button class="game-btn" onclick="startGame('thunder-strike')">
+                                <i class="fas fa-play"></i> Play Game
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Statistics -->
+                <div style="margin-top: 40px; background: white; border-radius: 20px; padding: 25px;">
+                    <h3 style="margin-bottom: 20px; color: #2d3748;">📊 Your Pet's Gaming Stats</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #667eea;">🏆</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2d3748;">12</div>
+                            <div style="color: #718096;">Games Completed</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #48bb78;">⭐</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2d3748;">4.6</div>
+                            <div style="color: #718096;">Average Rating</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #ed8936;">⏱️</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2d3748;">2h 15m</div>
+                            <div style="color: #718096;">Total Play Time</div>
+                        </div>
+                        <div style="text-align: center; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                            <div style="font-size: 2rem; color: #9f7aea;">🎯</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2d3748;">😺</div>
+                            <div style="color: #718096;">Favorite Mood</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- All Features Section -->
+        <section id="all-features" class="section">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-size: 2.5rem; margin-bottom: 15px; color: #2d3748;">🐾 Complete Pet Mood Experience</h2>
+                <p style="font-size: 1.2rem; color: #718096; max-width: 600px; margin: 0 auto;">
+                    Discover, play, and relax with our comprehensive pet mood detection and entertainment platform
+                </p>
+            </div>
+
+            <!-- Quick Actions Dashboard -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 40px;">
+                <div class="playlist-card happy" onclick="switchToSection('camera')" style="cursor: pointer;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">📸</div>
+                    <h4>Detect Pet Mood</h4>
+                    <p>Upload or capture a photo to analyze your pet's emotional state</p>
+                    <button class="game-btn" style="margin-top: 15px;">Start Detection</button>
+                </div>
+
+                <div class="playlist-card sad" onclick="switchToSection('music')" style="cursor: pointer;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">🎵</div>
+                    <h4>Play Mood Music</h4>
+                    <p>Curated playlists that match your pet's current emotional needs</p>
+                    <button class="game-btn" style="margin-top: 15px;">Open Player</button>
+                </div>
+
+                <div class="playlist-card angry" onclick="switchToSection('games')" style="cursor: pointer;">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">🎮</div>
+                    <h4>Play Games</h4>
+                    <p>Interactive games designed specifically for your pet's mood</p>
+                    <button class="game-btn" style="margin-top: 15px;">Browse Games</button>
+                </div>
+            </div>
+
+            <!-- Feature Highlights -->
+            <div style="background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 25px; color: #2d3748; text-align: center;">✨ Key Features</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                    
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2rem; color: white;">
+                            🧠
+                        </div>
+                        <h4 style="margin-bottom: 10px; color: #2d3748;">AI Mood Detection</h4>
+                        <p style="color: #718096; line-height: 1.6;">
+                            Advanced machine learning algorithms analyze facial expressions to accurately determine your pet's emotional state with 94% confidence.
+                        </p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ffeaa7, #fab1a0); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2rem; color: #2d3436;">
+                            🎼
+                        </div>
+                        <h4 style="margin-bottom: 10px; color: #2d3748;">Personalized Music</h4>
+                        <p style="color: #718096; line-height: 1.6;">
+                            Curated playlists with different genres and tempos specifically chosen to complement your pet's current mood and energy level.
+                        </p>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #fd79a8, #e84393); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 2rem; color: white;">
+                            🎯
+                        </div>
+                        <h4 style="margin-bottom: 10px; color: #2d3748;">Interactive Games</h4>
+                        <p style="color: #718096; line-height: 1.6;">
+                            Mood-specific games that help pets express emotions, release energy, or find comfort through engaging interactive experiences.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div style="background: white; border-radius: 20px; padding: 30px;">
+                <h3 style="margin-bottom: 25px; color: #2d3748;">📱 Recent Activity</h3>
+                <div style="space-y: 15px;">
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: #f7fafc; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #ffeaa7, #fab1a0); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">😺</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #2d3748;">Happy mood detected</div>
+                            <div style="color: #718096; font-size: 0.9rem;">2 minutes ago • 94% confidence</div>
+                        </div>
+                        <div style="color: #48bb78; font-weight: 600;">✓</div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: #f7fafc; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: white;">🎵</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #2d3748;">Played "Happy Vibes" playlist</div>
+                            <div style="color: #718096; font-size: 0.9rem;">5 minutes ago • 3 songs played</div>
+                        </div>
+                        <div style="color: #667eea; font-weight: 600;">♪</div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: #f7fafc; border-radius: 10px;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #a8e6cf, #74b9ff); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🎮</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #2d3748;">Completed "Treat Dash" game</div>
+                            <div style="color: #718096; font-size: 0.9rem;">15 minutes ago • Score: 1,250 points</div>
+                        </div>
+                        <div style="color: #ed8936; font-weight: 600;">🏆</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="function.js"></script> <!-- Changed from app.js to function.js -->
+</body>
+</html>
